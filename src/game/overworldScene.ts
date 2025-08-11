@@ -29,6 +29,10 @@ export const createOverworldScene = (
   const directionStream: Stream<Direction> = createStream<Direction>({ initialValue: { x: 0, y: 0 } });
 
   const key = sceneKey;
+    const tileSize = 16;
+  let lastTile: { x: number; y: number } = { x: -1, y: -1 };
+  let stepsCount = 0;
+
 
   const preload = function (this: Phaser.Scene): void {
     // Assets can be loaded here when available.
@@ -79,6 +83,22 @@ export const createOverworldScene = (
     const horizontal = (left ? -1 : 0) + (right ? 1 : 0);
     const vertical = (up ? -1 : 0) + (down ? 1 : 0);
     directionStream.push({ value: { x: horizontal, y: vertical } });
+      const playerObj = (this as any).__player as Phaser.Physics.Arcade.Image;
+  if (playerObj) {
+    const tileX = Math.floor(playerObj.x / tileSize);
+    const tileY = Math.floor(playerObj.y / tileSize);
+    if (tileX !== lastTile.x || tileY !== lastTile.y) {
+      stepsCount++;
+      lastTile = { x: tileX, y: tileY };
+      if (stepsCount % 50 === 0) {
+        const msg = this.add.text(10, 40, `Vous avez marché ${stepsCount} pas!`, { fontSize: '14px', color: '#ffffff' })
+          .setScrollFactor(0)
+          .setDepth(1000);
+        this.time.delayedCall(2000, () => { msg.destroy(); }, [], this);
+      }
+    }
+  }
+
   };
 
   return { key, preload, create, update };
